@@ -46,6 +46,13 @@ service cloud.firestore {
     //   - role: string (required, 'admin' or 'user')
     //   - displayName: string (optional)
     //
+    // Collection: gallery
+    // Document ID: auto-generated
+    // Fields:
+    //   - url: string (required)
+    //   - caption: string (optional)
+    //   - createdAt: timestamp (required)
+    //
     // ===============================================================
 
     // ===============================================================
@@ -123,6 +130,12 @@ service cloud.firestore {
              data.role in ['admin', 'user'];
     }
 
+    function isValidGalleryImage(data) {
+      return hasRequiredFields(['url', 'createdAt']) &&
+             isValidUrl(data.url) &&
+             data.createdAt is timestamp;
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -145,6 +158,13 @@ service cloud.firestore {
       allow read: if true; // Publicly readable
       allow create: if isAdmin() && isValidProduct(request.resource.data);
       allow update: if isAdmin() && isValidProduct(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /gallery/{imageId} {
+      allow read: if true; // Publicly readable
+      allow create: if isAdmin() && isValidGalleryImage(request.resource.data);
+      allow update: if isAdmin() && isValidGalleryImage(request.resource.data);
       allow delete: if isAdmin();
     }
 

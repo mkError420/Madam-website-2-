@@ -39,3 +39,10 @@ export interface TourDate {
   location: string;
   status: 'Tickets' | 'Sold Out' | 'Coming Soon';
 }
+
+export interface GalleryImage {
+  id: string;
+  url: string;
+  caption?: string;
+  createdAt?: Timestamp;
+}

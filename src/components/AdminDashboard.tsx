@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Trash2, Edit2, Save, X, Music, Video as VideoIcon, ShoppingBag, LogIn, LogOut, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, X, Music, Video as VideoIcon, ShoppingBag, LogIn, LogOut, ShieldCheck, AlertCircle, Image as ImageIcon } from 'lucide-react';
 import { auth, db, googleProvider, signInWithPopup, signOut, onAuthStateChanged, collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, orderBy, Timestamp, OperationType, handleFirestoreError, FirebaseUser } from '../lib/firebase';
-import { Track, Video, Product } from '../types';
+import { Track, Video, Product, GalleryImage } from '../types';
 
 export default function AdminDashboard() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'tracks' | 'videos' | 'products'>('tracks');
+  const [activeTab, setActiveTab] = useState<'tracks' | 'videos' | 'products' | 'gallery'>('tracks');
   
   const [tracks, setTracks] = useState<Track[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [gallery, setGallery] = useState<GalleryImage[]>([]);
 
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +22,7 @@ export default function AdminDashboard() {
   const [trackForm, setTrackForm] = useState({ title: '', album: '', duration: '', year: '', cover: '', audioUrl: '' });
   const [videoForm, setVideoForm] = useState({ title: '', thumbnail: '', duration: '', views: '', category: '', description: '' });
   const [productForm, setProductForm] = useState({ name: '', price: 0, image: '', category: '', isNew: false });
+  const [galleryForm, setGalleryForm] = useState({ url: '', caption: '' });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -63,6 +65,9 @@ export default function AdminDashboard() {
 
       const productsSnap = await getDocs(query(collection(db, 'products'), orderBy('createdAt', 'desc')));
       setProducts(productsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Product)));
+
+      const gallerySnap = await getDocs(query(collection(db, 'gallery'), orderBy('createdAt', 'desc')));
+      setGallery(gallerySnap.docs.map(d => ({ id: d.id, ...d.data() } as GalleryImage)));
     } catch (err) {
       console.error("Error fetching data:", err);
     }
@@ -129,6 +134,21 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleAddGalleryImage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    try {
+      const newImage = { ...galleryForm, createdAt: Timestamp.now() };
+      const galleryRef = doc(collection(db, 'gallery'));
+      await setDoc(galleryRef, newImage);
+      setGallery([{ id: galleryRef.id, ...newImage }, ...gallery]);
+      setGalleryForm({ url: '', caption: '' });
+      setIsAdding(false);
+    } catch (err) {
+      handleFirestoreError(err, OperationType.CREATE, 'gallery');
+    }
+  };
+
   const handleDelete = async (id: string, collectionName: string) => {
     if (!confirm(`Are you sure you want to delete this ${collectionName.slice(0, -1)}?`)) return;
     try {
@@ -136,6 +156,7 @@ export default function AdminDashboard() {
       if (collectionName === 'tracks') setTracks(tracks.filter(t => t.id !== id));
       if (collectionName === 'videos') setVideos(videos.filter(v => v.id !== id));
       if (collectionName === 'products') setProducts(products.filter(p => p.id !== id));
+      if (collectionName === 'gallery') setGallery(gallery.filter(g => g.id !== id));
     } catch (err) {
       handleFirestoreError(err, OperationType.DELETE, collectionName);
     }
@@ -241,6 +262,15 @@ export default function AdminDashboard() {
             <ShoppingBag className="w-4 h-4" />
             Merch
           </button>
+          <button 
+            onClick={() => setActiveTab('gallery')}
+            className={`px-8 py-4 rounded-2xl font-mono text-xs uppercase tracking-widest transition-all flex items-center gap-3 whitespace-nowrap ${
+              activeTab === 'gallery' ? 'bg-gold-500 text-gold-950 font-bold' : 'bg-white/5 text-zinc-400 hover:bg-white/10'
+            }`}
+          >
+            <ImageIcon className="w-4 h-4" />
+            Gallery
+          </button>
         </div>
 
         <div className="flex justify-between items-center mb-8">
@@ -279,7 +309,12 @@ export default function AdminDashboard() {
                 </div>
 
                 <form 
-                  onSubmit={activeTab === 'tracks' ? handleAddTrack : activeTab === 'videos' ? handleAddVideo : handleAddProduct}
+                  onSubmit={
+                    activeTab === 'tracks' ? handleAddTrack : 
+                    activeTab === 'videos' ? handleAddVideo : 
+                    activeTab === 'products' ? handleAddProduct :
+                    handleAddGalleryImage
+                  }
                   className="p-8 space-y-6"
                 >
                   {activeTab === 'tracks' && (
@@ -365,6 +400,19 @@ export default function AdminDashboard() {
                     </div>
                   )}
 
+                  {activeTab === 'gallery' && (
+                    <div className="grid grid-cols-1 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Image URL</label>
+                        <input required value={galleryForm.url} onChange={e => setGalleryForm({...galleryForm, url: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold-500/50 outline-none transition-all" placeholder="https://..." />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Caption (Optional)</label>
+                        <input value={galleryForm.caption} onChange={e => setGalleryForm({...galleryForm, caption: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold-500/50 outline-none transition-all" placeholder="Photo caption" />
+                      </div>
+                    </div>
+                  )}
+
                   <button type="submit" className="w-full py-4 bg-gold-500 text-gold-950 font-bold rounded-2xl flex items-center justify-center gap-3 hover:bg-gold-400 transition-all">
                     <Save className="w-5 h-5" />
                     Save {activeTab.slice(0, -1)}
@@ -423,10 +471,25 @@ export default function AdminDashboard() {
               </div>
             ))}
 
-            {(activeTab === 'tracks' ? tracks : activeTab === 'videos' ? videos : products).length === 0 && (
+            {activeTab === 'gallery' && gallery.map(image => (
+              <div key={image.id} className="flex items-center gap-6 p-6 hover:bg-white/[0.02] transition-colors">
+                <img src={image.url} className="w-24 aspect-square rounded-xl object-cover" referrerPolicy="no-referrer" />
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-lg font-serif text-zinc-200">{image.caption || "No caption"}</h4>
+                  <p className="text-sm text-zinc-500">Gallery Image</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => handleDelete(image.id, 'gallery')} className="p-3 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all">
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {(activeTab === 'tracks' ? tracks : activeTab === 'videos' ? videos : activeTab === 'products' ? products : gallery).length === 0 && (
               <div className="p-24 text-center">
                 <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                  {activeTab === 'tracks' ? <Music className="w-10 h-10 text-zinc-700" /> : activeTab === 'videos' ? <VideoIcon className="w-10 h-10 text-zinc-700" /> : <ShoppingBag className="w-10 h-10 text-zinc-700" />}
+                  {activeTab === 'tracks' ? <Music className="w-10 h-10 text-zinc-700" /> : activeTab === 'videos' ? <VideoIcon className="w-10 h-10 text-zinc-700" /> : activeTab === 'products' ? <ShoppingBag className="w-10 h-10 text-zinc-700" /> : <ImageIcon className="w-10 h-10 text-zinc-700" />}
                 </div>
                 <p className="text-zinc-500 font-light">No {activeTab} found. Start by adding your first {activeTab.slice(0, -1)}.</p>
               </div>

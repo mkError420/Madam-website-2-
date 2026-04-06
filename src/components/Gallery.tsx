@@ -1,16 +1,41 @@
 import { motion } from "motion/react";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { db, collection, onSnapshot, query, orderBy, OperationType, handleFirestoreError } from "../lib/firebase";
+import { GalleryImage } from "../types";
 
-const images = [
-  "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=2070&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=2069&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=2070&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1514525253361-bee8718a74a2?q=80&w=1964&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1459749411177-042180ce673c?q=80&w=2070&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=2070&auto=format&fit=crop",
+const fallbackImages: GalleryImage[] = [
+  { id: "1", url: "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=2070&auto=format&fit=crop" },
+  { id: "2", url: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=2069&auto=format&fit=crop" },
+  { id: "3", url: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=2070&auto=format&fit=crop" },
+  { id: "4", url: "https://images.unsplash.com/photo-1514525253361-bee8718a74a2?q=80&w=1964&auto=format&fit=crop" },
+  { id: "5", url: "https://images.unsplash.com/photo-1459749411177-042180ce673c?q=80&w=2070&auto=format&fit=crop" },
+  { id: "6", url: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=2070&auto=format&fit=crop" },
 ];
 
 export default function Gallery({ showViewMore = false }: { showViewMore?: boolean }) {
+  const [images, setImages] = useState<GalleryImage[]>(fallbackImages);
+
+  useEffect(() => {
+    const q = query(collection(db, 'gallery'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedImages = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as GalleryImage));
+      
+      if (fetchedImages.length > 0) {
+        setImages(fetchedImages);
+      }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'gallery');
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const displayImages = showViewMore ? images.slice(0, 6) : images;
+
   return (
     <section id="gallery" className="py-24 bg-zinc-950">
       <div className="container mx-auto px-6">
@@ -27,9 +52,9 @@ export default function Gallery({ showViewMore = false }: { showViewMore?: boole
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {images.map((img, index) => (
+          {displayImages.map((img, index) => (
             <motion.div
-              key={index}
+              key={img.id}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
@@ -38,12 +63,16 @@ export default function Gallery({ showViewMore = false }: { showViewMore?: boole
               className="relative aspect-square rounded-2xl overflow-hidden group cursor-pointer"
             >
               <img 
-                src={img} 
-                alt={`Gallery ${index}`}
+                src={img.url} 
+                alt={img.caption || `Gallery ${index}`}
                 className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
                 referrerPolicy="no-referrer"
               />
-              <div className="absolute inset-0 bg-gold-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 bg-gold-500/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
+                {img.caption && (
+                  <p className="text-white text-sm font-light italic">{img.caption}</p>
+                )}
+              </div>
             </motion.div>
           ))}
         </div>

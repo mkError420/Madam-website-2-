@@ -55,6 +55,17 @@
         "displayName": { "type": "string", "description": "The user's display name" }
       },
       "required": ["email", "role"]
+    },
+    "GalleryImage": {
+      "title": "GalleryImage",
+      "description": "An image in the gallery",
+      "type": "object",
+      "properties": {
+        "url": { "type": "string", "description": "The URL of the image" },
+        "caption": { "type": "string", "description": "A brief caption for the image" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the image was added" }
+      },
+      "required": ["url"]
     }
   },
   "firestore": {
@@ -73,6 +84,10 @@
     "/users/{userId}": {
       "schema": "User",
       "description": "Collection of user profiles"
+    },
+    "/gallery/{imageId}": {
+      "schema": "GalleryImage",
+      "description": "Collection of gallery images"
     }
   }
 }
