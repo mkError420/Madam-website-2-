@@ -1,8 +1,18 @@
 import { motion } from "motion/react";
 import { Play, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { db, collection, onSnapshot, query, orderBy, OperationType, handleFirestoreError } from "../lib/firebase";
 
-const videos = [
+interface Video {
+  id: string;
+  title: string;
+  thumbnail: string;
+  duration: string;
+  views: string;
+}
+
+const fallbackVideos: Video[] = [
   {
     id: "1",
     title: "Echoes in the Dark (Official Music Video)",
@@ -27,6 +37,28 @@ const videos = [
 ];
 
 export default function VideosSection({ showViewMore = false }: { showViewMore?: boolean }) {
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(collection(db, 'videos'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedVideos = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Video[];
+      
+      setVideos(fetchedVideos.length > 0 ? fetchedVideos : fallbackVideos);
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'videos');
+      setVideos(fallbackVideos);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <section id="videos" className="py-24 bg-zinc-950">
       <div className="container mx-auto px-6">
@@ -43,7 +75,9 @@ export default function VideosSection({ showViewMore = false }: { showViewMore?:
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {videos.map((video, index) => (
+          {loading ? (
+            <div className="col-span-full py-12 text-center text-zinc-500 font-mono text-xs uppercase tracking-widest">Loading videos...</div>
+          ) : videos.map((video, index) => (
             <motion.div
               key={video.id}
               initial={{ opacity: 0, y: 20 }}

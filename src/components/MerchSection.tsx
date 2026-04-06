@@ -1,39 +1,58 @@
 import { motion } from "motion/react";
 import { ShoppingBag, ArrowRight, Star } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { db, collection, onSnapshot, query, orderBy, OperationType, handleFirestoreError } from "../lib/firebase";
 
-const products = [
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  category: string;
+  isNew?: boolean;
+}
+
+const fallbackProducts: Product[] = [
   {
     id: "1",
     name: "Midnight Serenade Vinyl",
-    price: "$35.00",
+    price: 35.00,
     image: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=2070&auto=format&fit=crop",
-    tag: "Limited Edition"
+    category: "Limited Edition"
   },
   {
     id: "2",
     name: "Echoes Oversized Hoodie",
-    price: "$65.00",
+    price: 65.00,
     image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1974&auto=format&fit=crop",
-    tag: "Best Seller"
+    category: "Best Seller"
   },
-  {
-    id: "3",
-    name: "Aria Vance Tour Poster",
-    price: "$20.00",
-    image: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=1974&auto=format&fit=crop",
-    tag: "New Arrival"
-  },
-  {
-    id: "4",
-    name: "Signature Lyric Book",
-    price: "$45.00",
-    image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1974&auto=format&fit=crop",
-    tag: "Exclusive"
-  }
 ];
 
 export default function MerchSection({ showViewMore = false }: { showViewMore?: boolean }) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedProducts = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Product[];
+      
+      setProducts(fetchedProducts.length > 0 ? fetchedProducts : fallbackProducts);
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'products');
+      setProducts(fallbackProducts);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <section id="merch" className="py-24 bg-zinc-950">
       <div className="container mx-auto px-6">
@@ -50,7 +69,9 @@ export default function MerchSection({ showViewMore = false }: { showViewMore?: 
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {products.map((product, index) => (
+          {loading ? (
+            <div className="col-span-full py-12 text-center text-zinc-500 font-mono text-xs uppercase tracking-widest">Loading products...</div>
+          ) : products.map((product, index) => (
             <motion.div
               key={product.id}
               initial={{ opacity: 0, y: 20 }}
@@ -69,7 +90,7 @@ export default function MerchSection({ showViewMore = false }: { showViewMore?: 
                 <div className="absolute top-4 left-4">
                   <span className="bg-gold-500 text-gold-950 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1">
                     <Star className="w-2 h-2 fill-current" />
-                    {product.tag}
+                    {product.category}
                   </span>
                 </div>
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -80,7 +101,7 @@ export default function MerchSection({ showViewMore = false }: { showViewMore?: 
                 </div>
               </div>
               <h3 className="text-lg font-serif mb-1 group-hover:text-gold-400 transition-colors">{product.name}</h3>
-              <p className="text-zinc-500 font-mono text-sm">{product.price}</p>
+              <p className="text-zinc-500 font-mono text-sm">${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</p>
             </motion.div>
           ))}
         </div>

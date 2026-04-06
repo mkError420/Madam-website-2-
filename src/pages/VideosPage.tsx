@@ -1,4 +1,5 @@
 import VideosSection from "../components/VideosSection";
+import VideoPlaylist from "../components/VideoPlaylist";
 import { motion } from "motion/react";
 
 export default function VideosPage() {
@@ -22,6 +23,7 @@ export default function VideosPage() {
         </div>
       </section>
 
+      <VideoPlaylist />
       <VideosSection showViewMore={false} />
     </div>
   );

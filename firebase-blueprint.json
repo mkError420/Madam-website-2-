@@ -1,0 +1,78 @@
+{
+  "entities": {
+    "Track": {
+      "title": "Track",
+      "description": "A music track in the discography",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "The title of the track" },
+        "album": { "type": "string", "description": "The album the track belongs to" },
+        "duration": { "type": "string", "description": "The duration of the track (e.g., 3:45)" },
+        "year": { "type": "string", "description": "The release year" },
+        "cover": { "type": "string", "description": "The URL of the track's cover image" },
+        "audioUrl": { "type": "string", "description": "The URL of the audio file" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the track was added" }
+      },
+      "required": ["title", "album", "duration", "year", "cover"]
+    },
+    "Video": {
+      "title": "Video",
+      "description": "A music video or live performance",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "The title of the video" },
+        "thumbnail": { "type": "string", "description": "The URL of the video's thumbnail" },
+        "duration": { "type": "string", "description": "The duration of the video" },
+        "views": { "type": "string", "description": "The view count (e.g., 1.2M)" },
+        "category": { "type": "string", "description": "The category (e.g., Music Video, Live)" },
+        "description": { "type": "string", "description": "A brief description of the video" },
+        "videoUrl": { "type": "string", "description": "The URL of the video (e.g., YouTube link)" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the video was added" }
+      },
+      "required": ["title", "thumbnail", "duration", "views", "category"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "A merchandise item",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "The name of the product" },
+        "price": { "type": "number", "description": "The price of the product" },
+        "image": { "type": "string", "description": "The URL of the product's image" },
+        "category": { "type": "string", "description": "The category (e.g., Apparel, Accessories)" },
+        "isNew": { "type": "boolean", "description": "Whether the product is new" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the product was added" }
+      },
+      "required": ["name", "price", "image", "category"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user profile",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "description": "The user's email" },
+        "role": { "type": "string", "enum": ["admin", "user"], "description": "The user's role" },
+        "displayName": { "type": "string", "description": "The user's display name" }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "/tracks/{trackId}": {
+      "schema": "Track",
+      "description": "Collection of music tracks"
+    },
+    "/videos/{videoId}": {
+      "schema": "Video",
+      "description": "Collection of videos"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Collection of merchandise products"
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user profiles"
+    }
+  }
+}

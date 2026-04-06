@@ -7,6 +7,7 @@ import MerchPage from "./pages/MerchPage";
 import GalleryPage from "./pages/GalleryPage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
+import AdminPage from "./pages/AdminPage";
 import ScrollToTop from "./components/ScrollToTop";
 
 export default function App() {
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Routes>
       </Layout>
     </Router>
