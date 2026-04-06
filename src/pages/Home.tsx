@@ -14,12 +14,12 @@ export default function Home() {
       <Hero />
       <div className="space-y-0">
         <LatestRelease />
-        <MerchSection />
-        <MusicSection />
-        <VideosSection />
+        <MerchSection showViewMore={true} />
+        <MusicSection showViewMore={true} />
+        <VideosSection showViewMore={true} />
         <PressQuotes />
         <About />
-        <Gallery />
+        <Gallery showViewMore={true} />
         <Newsletter />
       </div>
     </>

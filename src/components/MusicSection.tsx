@@ -11,7 +11,7 @@ const tracks: Track[] = [
   { id: "4", title: "Neon Heartbeat", duration: "3:56", url: "#", cover: "https://picsum.photos/seed/music4/400/400" },
 ];
 
-export default function MusicSection() {
+export default function MusicSection({ showViewMore = false }: { showViewMore?: boolean }) {
   const [activeTrack, setActiveTrack] = useState(tracks[0]);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -75,9 +75,12 @@ export default function MusicSection() {
 
           {/* Tracklist */}
           <div className="w-full lg:w-1/2">
-            <div className="flex items-center gap-3 mb-10">
-              <ListMusic className="text-gold-400 w-6 h-6" />
-              <h2 className="text-4xl font-serif">Discography</h2>
+            <div className="flex items-center justify-between mb-10">
+              <div className="flex items-center gap-3">
+                <ListMusic className="text-gold-400 w-6 h-6" />
+                <h2 className="text-4xl font-serif">Featured</h2>
+              </div>
+              <span className="text-[10px] font-mono text-gold-500 uppercase tracking-widest border border-gold-500/30 px-3 py-1 rounded-full">Now Playing</span>
             </div>
             
             <div className="space-y-2">
@@ -107,9 +110,11 @@ export default function MusicSection() {
               ))}
             </div>
 
-            <Link to="/music" className="mt-12 w-full py-4 border border-gold-500/30 text-gold-400 rounded-xl hover:bg-gold-500 hover:text-gold-950 transition-all font-bold flex items-center justify-center">
-              View more
-            </Link>
+            {showViewMore && (
+              <Link to="/music" className="mt-12 w-full py-4 border border-gold-500/30 text-gold-400 rounded-xl hover:bg-gold-500 hover:text-gold-950 transition-all font-bold flex items-center justify-center">
+                View more
+              </Link>
+            )}
           </div>
 
         </div>

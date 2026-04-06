@@ -10,7 +10,7 @@ const images = [
   "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=2070&auto=format&fit=crop",
 ];
 
-export default function Gallery() {
+export default function Gallery({ showViewMore = false }: { showViewMore?: boolean }) {
   return (
     <section id="gallery" className="py-24 bg-zinc-950">
       <div className="container mx-auto px-6">
@@ -19,9 +19,11 @@ export default function Gallery() {
             <h2 className="text-5xl font-serif mb-4">Visuals</h2>
             <p className="text-zinc-500 font-mono text-sm tracking-widest uppercase">Moments from the stage</p>
           </div>
-          <Link to="/gallery" className="text-gold-400 hover:text-gold-200 font-mono text-sm uppercase tracking-widest border-b border-gold-500/30 pb-1 transition-all">
-            View All Photos
-          </Link>
+          {showViewMore && (
+            <Link to="/gallery" className="text-gold-400 hover:text-gold-200 font-mono text-sm uppercase tracking-widest border-b border-gold-500/30 pb-1 transition-all">
+              View All Photos
+            </Link>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

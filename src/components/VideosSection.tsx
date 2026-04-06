@@ -26,7 +26,7 @@ const videos = [
   },
 ];
 
-export default function VideosSection() {
+export default function VideosSection({ showViewMore = false }: { showViewMore?: boolean }) {
   return (
     <section id="videos" className="py-24 bg-zinc-950">
       <div className="container mx-auto px-6">
@@ -35,9 +35,11 @@ export default function VideosSection() {
             <h2 className="text-5xl font-serif mb-4">Videos</h2>
             <p className="text-zinc-500 font-mono text-sm tracking-widest uppercase">Music videos & live performances</p>
           </div>
-          <Link to="/videos" className="text-gold-400 hover:text-gold-200 font-mono text-sm uppercase tracking-widest border-b border-gold-500/30 pb-1 transition-all">
-            More videos
-          </Link>
+          {showViewMore && (
+            <Link to="/videos" className="text-gold-400 hover:text-gold-200 font-mono text-sm uppercase tracking-widest border-b border-gold-500/30 pb-1 transition-all">
+              More videos
+            </Link>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

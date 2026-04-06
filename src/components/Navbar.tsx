@@ -42,23 +42,28 @@ export default function Navbar() {
           
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-6">
-            {navItems.map((item) => (
-              <Link 
-                key={item.name}
-                to={item.href}
-                className="text-sm font-medium text-zinc-400 hover:text-gold-200 transition-colors flex items-center gap-2 whitespace-nowrap"
-              >
-                {item.icon}
-                {item.name}
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              const isActive = location.pathname === item.href;
+              return (
+                <Link 
+                  key={item.name}
+                  to={item.href}
+                  className={`text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
+                    isActive ? "text-gold-400" : "text-zinc-400 hover:text-gold-200"
+                  }`}
+                >
+                  {item.icon}
+                  {item.name}
+                </Link>
+              );
+            })}
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="hidden lg:flex bg-gold-500 hover:bg-gold-400 text-gold-950 px-5 py-1.5 rounded-full text-sm font-bold transition-all transform hover:scale-105 items-center gap-2 whitespace-nowrap">
+            <Link to="/music" className="hidden lg:flex bg-gold-500 hover:bg-gold-400 text-gold-950 px-5 py-1.5 rounded-full text-sm font-bold transition-all transform hover:scale-105 items-center gap-2 whitespace-nowrap">
               <Play className="w-3 h-3 fill-current" />
               Latest Single
-            </button>
+            </Link>
 
             {/* Mobile/Tablet Toggle */}
             <button 
@@ -81,34 +86,45 @@ export default function Navbar() {
             className="fixed inset-0 z-40 lg:hidden bg-zinc-950/95 backdrop-blur-xl pt-24 px-6"
           >
             <div className="flex flex-col gap-4">
-              {navItems.map((item, index) => (
-                <motion.div
-                  key={item.name}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <Link 
-                    to={item.href}
-                    className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 text-xl font-serif text-zinc-200 hover:text-gold-400 hover:bg-white/10 transition-all"
+              {navItems.map((item, index) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <motion.div
+                    key={item.name}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
                   >
-                    <span className="p-2 rounded-lg bg-gold-500/10 text-gold-400">
-                      {item.icon}
-                    </span>
-                    {item.name}
-                  </Link>
-                </motion.div>
-              ))}
+                    <Link 
+                      to={item.href}
+                      className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${
+                        isActive 
+                          ? "bg-gold-500/10 border-gold-500/30 text-gold-400" 
+                          : "bg-white/5 border-white/10 text-zinc-200 hover:text-gold-400 hover:bg-white/10"
+                      } text-xl font-serif`}
+                    >
+                      <span className={`p-2 rounded-lg ${isActive ? "bg-gold-500/20 text-gold-400" : "bg-gold-500/10 text-gold-400"}`}>
+                        {item.icon}
+                      </span>
+                      {item.name}
+                    </Link>
+                  </motion.div>
+                );
+              })}
               
-              <motion.button 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="mt-8 w-full py-4 bg-gold-500 text-gold-950 font-bold rounded-2xl flex items-center justify-center gap-3"
               >
-                <Play className="w-5 h-5 fill-current" />
-                Latest Single
-              </motion.button>
+                <Link 
+                  to="/music"
+                  className="mt-8 w-full py-4 bg-gold-500 text-gold-950 font-bold rounded-2xl flex items-center justify-center gap-3"
+                >
+                  <Play className="w-5 h-5 fill-current" />
+                  Latest Single
+                </Link>
+              </motion.div>
             </div>
           </motion.div>
         )}

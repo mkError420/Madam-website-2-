@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import { Play, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Hero() {
   return (
@@ -31,16 +32,16 @@ export default function Hero() {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <button className="group relative px-8 py-4 bg-gold-500 text-gold-950 font-bold rounded-full overflow-hidden transition-all hover:pr-12">
+            <Link to="/videos" className="group relative px-8 py-4 bg-gold-500 text-gold-950 font-bold rounded-full overflow-hidden transition-all hover:pr-12">
               <span className="relative z-10 flex items-center gap-2">
                 <Play className="w-4 h-4 fill-current" />
                 Listen to "Echoes"
               </span>
               <ArrowRight className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all w-4 h-4" />
-            </button>
-            <button className="px-8 py-4 border border-white/20 hover:bg-white/5 rounded-full font-bold transition-all">
-              View Tour Dates
-            </button>
+            </Link>
+            <Link to="/music" className="px-8 py-4 border border-white/20 hover:bg-white/5 rounded-full font-bold transition-all">
+              View more
+            </Link>
           </div>
         </motion.div>
       </div>

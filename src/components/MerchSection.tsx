@@ -33,7 +33,7 @@ const products = [
   }
 ];
 
-export default function MerchSection() {
+export default function MerchSection({ showViewMore = false }: { showViewMore?: boolean }) {
   return (
     <section id="merch" className="py-24 bg-zinc-950">
       <div className="container mx-auto px-6">
@@ -42,9 +42,11 @@ export default function MerchSection() {
             <h2 className="text-5xl font-serif mb-4">The <span className="italic text-gold-200">Collection</span></h2>
             <p className="text-zinc-500 font-mono text-sm tracking-widest uppercase">Official Aria Vance Merchandise</p>
           </div>
-          <Link to="/merch" className="group flex items-center gap-2 text-gold-400 hover:text-gold-200 font-mono text-sm uppercase tracking-widest transition-all">
-            View Full Store <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          {showViewMore && (
+            <Link to="/merch" className="group flex items-center gap-2 text-gold-400 hover:text-gold-200 font-mono text-sm uppercase tracking-widest transition-all">
+              View Full Store <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
