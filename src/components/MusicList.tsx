@@ -20,16 +20,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-
-interface Track {
-  id: string;
-  title: string;
-  album: string;
-  duration: string;
-  year: string;
-  cover: string;
-  audioUrl?: string;
-}
+import { Track } from "../types";
 
 const fallbackTracks: Track[] = [
   { 

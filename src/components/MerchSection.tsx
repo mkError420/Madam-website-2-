@@ -3,15 +3,7 @@ import { ShoppingBag, ArrowRight, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { db, collection, onSnapshot, query, orderBy, OperationType, handleFirestoreError } from "../lib/firebase";
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  category: string;
-  isNew?: boolean;
-}
+import { Product } from "../types";
 
 const fallbackProducts: Product[] = [
   {

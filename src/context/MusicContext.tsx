@@ -1,14 +1,5 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
-
-interface Track {
-  id: string;
-  title: string;
-  album: string;
-  duration: string;
-  year: string;
-  cover: string;
-  audioUrl?: string;
-}
+import { Track } from '../types';
 
 interface MusicContextType {
   currentTrack: Track | null;

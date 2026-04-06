@@ -1,38 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Trash2, Edit2, Save, X, Music, Video, ShoppingBag, LogIn, LogOut, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, X, Music, Video as VideoIcon, ShoppingBag, LogIn, LogOut, ShieldCheck, AlertCircle } from 'lucide-react';
 import { auth, db, googleProvider, signInWithPopup, signOut, onAuthStateChanged, collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, orderBy, Timestamp, OperationType, handleFirestoreError, FirebaseUser } from '../lib/firebase';
-
-interface Track {
-  id: string;
-  title: string;
-  album: string;
-  duration: string;
-  year: string;
-  cover: string;
-  createdAt: Timestamp;
-}
-
-interface Video {
-  id: string;
-  title: string;
-  thumbnail: string;
-  duration: string;
-  views: string;
-  category: string;
-  description?: string;
-  createdAt: Timestamp;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  category: string;
-  isNew?: boolean;
-  createdAt: Timestamp;
-}
+import { Track, Video, Product } from '../types';
 
 export default function AdminDashboard() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -259,7 +229,7 @@ export default function AdminDashboard() {
               activeTab === 'videos' ? 'bg-gold-500 text-gold-950 font-bold' : 'bg-white/5 text-zinc-400 hover:bg-white/10'
             }`}
           >
-            <Video className="w-4 h-4" />
+            <VideoIcon className="w-4 h-4" />
             Videos
           </button>
           <button 
@@ -456,7 +426,7 @@ export default function AdminDashboard() {
             {(activeTab === 'tracks' ? tracks : activeTab === 'videos' ? videos : products).length === 0 && (
               <div className="p-24 text-center">
                 <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                  {activeTab === 'tracks' ? <Music className="w-10 h-10 text-zinc-700" /> : activeTab === 'videos' ? <Video className="w-10 h-10 text-zinc-700" /> : <ShoppingBag className="w-10 h-10 text-zinc-700" />}
+                  {activeTab === 'tracks' ? <Music className="w-10 h-10 text-zinc-700" /> : activeTab === 'videos' ? <VideoIcon className="w-10 h-10 text-zinc-700" /> : <ShoppingBag className="w-10 h-10 text-zinc-700" />}
                 </div>
                 <p className="text-zinc-500 font-light">No {activeTab} found. Start by adding your first {activeTab.slice(0, -1)}.</p>
               </div>

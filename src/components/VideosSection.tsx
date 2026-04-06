@@ -3,14 +3,7 @@ import { Play, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { db, collection, onSnapshot, query, orderBy, OperationType, handleFirestoreError } from "../lib/firebase";
-
-interface Video {
-  id: string;
-  title: string;
-  thumbnail: string;
-  duration: string;
-  views: string;
-}
+import { Video } from "../types";
 
 const fallbackVideos: Video[] = [
   {
@@ -19,6 +12,7 @@ const fallbackVideos: Video[] = [
     thumbnail: "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=2070&auto=format&fit=crop",
     duration: "4:20",
     views: "1.2M views",
+    category: "Music Video",
   },
   {
     id: "2",
@@ -26,6 +20,7 @@ const fallbackVideos: Video[] = [
     thumbnail: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=2070&auto=format&fit=crop",
     duration: "5:15",
     views: "850K views",
+    category: "Live Performance",
   },
   {
     id: "3",
@@ -33,6 +28,7 @@ const fallbackVideos: Video[] = [
     thumbnail: "https://images.unsplash.com/photo-1514525253361-bee8718a74a2?q=80&w=1964&auto=format&fit=crop",
     duration: "3:45",
     views: "420K views",
+    category: "Acoustic",
   },
 ];
 
