@@ -1,5 +1,8 @@
-import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
+import React, { createContext, useContext, useState, useRef } from 'react';
+import ReactPlayer from 'react-player';
 import { Track } from '../types';
+
+const Player = ReactPlayer as any;
 
 interface MusicContextType {
   currentTrack: Track | null;
@@ -32,42 +35,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [queue, setQueueState] = useState<Track[]>([]);
   
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  useEffect(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio();
-    }
-
-    const audio = audioRef.current;
-
-    const updateProgress = () => setProgress(audio.currentTime);
-    const updateDuration = () => setDuration(audio.duration);
-    const onEnded = () => playNext();
-    const onError = (e: any) => {
-      console.error("Audio error:", e);
-      setError("Failed to load audio source. Please check the URL.");
-      setIsPlaying(false);
-    };
-
-    audio.addEventListener('timeupdate', updateProgress);
-    audio.addEventListener('loadedmetadata', updateDuration);
-    audio.addEventListener('ended', onEnded);
-    audio.addEventListener('error', onError);
-
-    return () => {
-      audio.removeEventListener('timeupdate', updateProgress);
-      audio.removeEventListener('loadedmetadata', updateDuration);
-      audio.removeEventListener('ended', onEnded);
-      audio.removeEventListener('error', onError);
-    };
-  }, [queue, currentTrack]); // Re-bind onEnded when queue/track changes
-
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
-    }
-  }, [volume]);
+  const playerRef = useRef<any>(null);
 
   const playTrack = (track: Track) => {
     setError(null);
@@ -77,37 +45,17 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     }
 
     setCurrentTrack(track);
-    if (audioRef.current && track.audioUrl) {
-      audioRef.current.src = track.audioUrl;
-      audioRef.current.play().catch(err => {
-        console.error("Playback failed:", err);
-        setError("Playback failed. The audio source might be invalid or restricted.");
-        setIsPlaying(false);
-      });
-      setIsPlaying(true);
-    } else {
-      console.warn("No audio URL for track:", track.title);
-      setError("No audio URL provided for this track.");
-      setIsPlaying(false);
-    }
+    setIsPlaying(true);
   };
 
   const togglePlay = () => {
     if (!currentTrack) return;
-    
-    if (isPlaying) {
-      audioRef.current?.pause();
-    } else {
-      audioRef.current?.play().catch(err => console.error("Playback failed:", err));
-    }
     setIsPlaying(!isPlaying);
   };
 
   const seek = (time: number) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = time;
-      setProgress(time);
-    }
+    playerRef.current?.seekTo(time);
+    setProgress(time);
   };
 
   const addToQueue = (track: Track) => {
@@ -158,6 +106,26 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       setQueue
     }}>
       {children}
+      {currentTrack?.audioUrl && (
+        <div className="hidden">
+          <Player
+            ref={playerRef}
+            url={currentTrack.audioUrl}
+            playing={isPlaying}
+            volume={volume}
+            onProgress={(state: any) => setProgress(state.playedSeconds)}
+            onDuration={(d: number) => setDuration(d)}
+            onEnded={playNext}
+            onError={(e: any) => {
+              console.error("Playback error:", e);
+              setError("Failed to load audio source. Please check the URL.");
+              setIsPlaying(false);
+            }}
+            width="0"
+            height="0"
+          />
+        </div>
+      )}
     </MusicContext.Provider>
   );
 }

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Trash2, Edit2, Save, X, Music, Video as VideoIcon, ShoppingBag, LogIn, LogOut, ShieldCheck, AlertCircle, Image as ImageIcon } from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, X, Music, Video as VideoIcon, ShoppingBag, LogIn, LogOut, ShieldCheck, AlertCircle, Image as ImageIcon, Upload } from 'lucide-react';
 import { auth, db, googleProvider, signInWithPopup, signOut, onAuthStateChanged, collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, orderBy, Timestamp, OperationType, handleFirestoreError, FirebaseUser } from '../lib/firebase';
 import { Track, Video, Product, GalleryImage } from '../types';
 
 export default function AdminDashboard() {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const audioInputRef = React.useRef<HTMLInputElement>(null);
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -138,6 +140,10 @@ export default function AdminDashboard() {
     e.preventDefault();
     setError(null);
     try {
+      if (!galleryForm.url) {
+        setError("Please provide an image URL or upload a file.");
+        return;
+      }
       const newImage = { ...galleryForm, createdAt: Timestamp.now() };
       const galleryRef = doc(collection(db, 'gallery'));
       await setDoc(galleryRef, newImage);
@@ -146,6 +152,36 @@ export default function AdminDashboard() {
       setIsAdding(false);
     } catch (err) {
       handleFirestoreError(err, OperationType.CREATE, 'gallery');
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 800000) { // ~800KB to stay safe within 1MB Firestore limit after base64
+        setError("File is too large. Please select an image smaller than 800KB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setGalleryForm({ ...galleryForm, url: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAudioFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 1000000) { // Firestore 1MB limit
+        setError("Audio file is too large (max 1MB for direct upload). Please use a URL for larger files.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setTrackForm({ ...trackForm, audioUrl: reader.result as string });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -340,8 +376,33 @@ export default function AdminDashboard() {
                         <input required value={trackForm.cover} onChange={e => setTrackForm({...trackForm, cover: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold-500/50 outline-none transition-all" placeholder="https://..." />
                       </div>
                       <div className="md:col-span-2 space-y-2">
-                        <label className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Audio File URL (Direct Link)</label>
-                        <input value={trackForm.audioUrl} onChange={e => setTrackForm({...trackForm, audioUrl: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold-500/50 outline-none transition-all" placeholder="https://.../song.mp3" />
+                        <label className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Audio Source (Direct URL or YouTube Link)</label>
+                        <div className="flex gap-4">
+                          <input 
+                            value={trackForm.audioUrl} 
+                            onChange={e => setTrackForm({...trackForm, audioUrl: e.target.value})} 
+                            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold-500/50 outline-none transition-all" 
+                            placeholder="https://.../song.mp3 or YouTube URL" 
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => audioInputRef.current?.click()}
+                            className="px-6 py-3 bg-white/5 border border-white/10 text-zinc-400 rounded-xl font-mono text-xs uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2"
+                          >
+                            <Upload className="w-4 h-4" />
+                            Upload
+                          </button>
+                          <input 
+                            type="file" 
+                            ref={audioInputRef} 
+                            onChange={handleAudioFileChange} 
+                            className="hidden" 
+                            accept="audio/*" 
+                          />
+                        </div>
+                        {trackForm.audioUrl && trackForm.audioUrl.startsWith('data:audio') && (
+                          <p className="text-[10px] text-gold-400 font-mono italic">Audio file attached successfully</p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -403,8 +464,45 @@ export default function AdminDashboard() {
                   {activeTab === 'gallery' && (
                     <div className="grid grid-cols-1 gap-6">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Image URL</label>
-                        <input required value={galleryForm.url} onChange={e => setGalleryForm({...galleryForm, url: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold-500/50 outline-none transition-all" placeholder="https://..." />
+                        <label className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Image Source</label>
+                        <div className="flex flex-col gap-4">
+                          <div className="flex gap-4">
+                            <input 
+                              required 
+                              value={galleryForm.url} 
+                              onChange={e => setGalleryForm({...galleryForm, url: e.target.value})} 
+                              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold-500/50 outline-none transition-all" 
+                              placeholder="https://..." 
+                            />
+                            <button 
+                              type="button"
+                              onClick={() => fileInputRef.current?.click()}
+                              className="px-6 py-3 bg-white/5 border border-white/10 text-zinc-400 rounded-xl font-mono text-xs uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2"
+                            >
+                              <Upload className="w-4 h-4" />
+                              Upload
+                            </button>
+                            <input 
+                              type="file" 
+                              ref={fileInputRef} 
+                              onChange={handleFileChange} 
+                              className="hidden" 
+                              accept="image/*" 
+                            />
+                          </div>
+                          {galleryForm.url && galleryForm.url.startsWith('data:') && (
+                            <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-white/10">
+                              <img src={galleryForm.url} className="w-full h-full object-cover" />
+                              <button 
+                                type="button"
+                                onClick={() => setGalleryForm({...galleryForm, url: ''})}
+                                className="absolute top-1 right-1 p-1 bg-zinc-950/80 rounded-full text-zinc-400 hover:text-white"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Caption (Optional)</label>
