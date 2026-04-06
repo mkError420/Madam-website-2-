@@ -107,7 +107,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     }}>
       {children}
       {currentTrack?.audioUrl && (
-        <div className="hidden">
+        <div className="fixed bottom-0 left-0 w-0 h-0 overflow-hidden pointer-events-none opacity-0 invisible">
           <Player
             ref={playerRef}
             url={currentTrack.audioUrl}
@@ -123,6 +123,14 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
             }}
             width="0"
             height="0"
+            config={{
+              file: {
+                forceAudio: true,
+                attributes: {
+                  controlsList: 'nodownload'
+                }
+              }
+            }}
           />
         </div>
       )}

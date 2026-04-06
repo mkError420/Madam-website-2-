@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Trash2, Edit2, Save, X, Music, Video as VideoIcon, ShoppingBag, LogIn, LogOut, ShieldCheck, AlertCircle, Image as ImageIcon, Upload } from 'lucide-react';
-import { auth, db, googleProvider, signInWithPopup, signOut, onAuthStateChanged, collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, orderBy, Timestamp, OperationType, handleFirestoreError, FirebaseUser } from '../lib/firebase';
+import { Plus, Trash2, Edit2, Save, X, Music, Video as VideoIcon, ShoppingBag, LogIn, LogOut, ShieldCheck, AlertCircle, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
+import { auth, db, storage, googleProvider, signInWithPopup, signOut, onAuthStateChanged, collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, orderBy, Timestamp, OperationType, handleFirestoreError, FirebaseUser } from '../lib/firebase';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { Track, Video, Product, GalleryImage } from '../types';
 
 export default function AdminDashboard() {
@@ -10,6 +11,7 @@ export default function AdminDashboard() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
   const [activeTab, setActiveTab] = useState<'tracks' | 'videos' | 'products' | 'gallery'>('tracks');
   
   const [tracks, setTracks] = useState<Track[]>([]);
@@ -170,24 +172,47 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleAudioFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAudioFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 1000000) { // Firestore 1MB limit
-        setError("Audio file is too large (max 1MB for direct upload). Please use a URL for larger files.");
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        setError("Audio file is too large (max 10MB).");
         return;
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setTrackForm({ ...trackForm, audioUrl: reader.result as string });
-      };
-      reader.readAsDataURL(file);
+      
+      setIsUploading(true);
+      setError(null);
+      try {
+        const storageRef = ref(storage, `tracks/${Date.now()}_${file.name}`);
+        const snapshot = await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+        setTrackForm({ ...trackForm, audioUrl: downloadURL });
+      } catch (err) {
+        console.error("Upload error:", err);
+        setError("Failed to upload audio file. Please try again.");
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
   const handleDelete = async (id: string, collectionName: string) => {
     if (!confirm(`Are you sure you want to delete this ${collectionName.slice(0, -1)}?`)) return;
     try {
+      // If deleting a track, check if the audio URL is a storage URL and delete it
+      if (collectionName === 'tracks') {
+        const trackToDelete = tracks.find(t => t.id === id);
+        if (trackToDelete?.audioUrl && trackToDelete.audioUrl.includes('firebasestorage.googleapis.com')) {
+          try {
+            const storageRef = ref(storage, trackToDelete.audioUrl);
+            await deleteObject(storageRef);
+          } catch (err) {
+            console.error("Error deleting storage object:", err);
+            // Continue with document deletion even if storage deletion fails
+          }
+        }
+      }
+
       await deleteDoc(doc(db, collectionName, id));
       if (collectionName === 'tracks') setTracks(tracks.filter(t => t.id !== id));
       if (collectionName === 'videos') setVideos(videos.filter(v => v.id !== id));
@@ -386,11 +411,12 @@ export default function AdminDashboard() {
                           />
                           <button 
                             type="button"
+                            disabled={isUploading}
                             onClick={() => audioInputRef.current?.click()}
-                            className="px-6 py-3 bg-white/5 border border-white/10 text-zinc-400 rounded-xl font-mono text-xs uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2"
+                            className="px-6 py-3 bg-white/5 border border-white/10 text-zinc-400 rounded-xl font-mono text-xs uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            <Upload className="w-4 h-4" />
-                            Upload
+                            {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                            {isUploading ? 'Uploading...' : 'Upload'}
                           </button>
                           <input 
                             type="file" 
@@ -400,6 +426,9 @@ export default function AdminDashboard() {
                             accept="audio/*" 
                           />
                         </div>
+                        {trackForm.audioUrl && trackForm.audioUrl.includes('firebasestorage.googleapis.com') && (
+                          <p className="text-[10px] text-gold-400 font-mono italic">Audio file uploaded successfully</p>
+                        )}
                         {trackForm.audioUrl && trackForm.audioUrl.startsWith('data:audio') && (
                           <p className="text-[10px] text-gold-400 font-mono italic">Audio file attached successfully</p>
                         )}
