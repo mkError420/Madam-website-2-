@@ -28,14 +28,55 @@ interface Track {
   duration: string;
   year: string;
   cover: string;
+  audioUrl?: string;
 }
 
 const fallbackTracks: Track[] = [
-  { id: "1", title: "Echoes in the Dark", album: "Midnight Serenade", duration: "3:45", year: "2024", cover: "https://picsum.photos/seed/music1/400/400" },
-  { id: "2", title: "Midnight Serenade", album: "Midnight Serenade", duration: "4:12", year: "2024", cover: "https://picsum.photos/seed/music2/400/400" },
-  { id: "3", title: "Velvet Skies", album: "Midnight Serenade", duration: "3:28", year: "2024", cover: "https://picsum.photos/seed/music3/400/400" },
-  { id: "4", title: "Neon Heartbeat", album: "Midnight Serenade", duration: "3:56", year: "2024", cover: "https://picsum.photos/seed/music4/400/400" },
-  { id: "5", title: "Shadow Waltz", album: "Midnight Serenade", duration: "4:05", year: "2024", cover: "https://picsum.photos/seed/music5/400/400" },
+  { 
+    id: "1", 
+    title: "Echoes in the Dark", 
+    album: "Midnight Serenade", 
+    duration: "6:12", 
+    year: "2024", 
+    cover: "https://picsum.photos/seed/music1/400/400",
+    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+  },
+  { 
+    id: "2", 
+    title: "Midnight Serenade", 
+    album: "Midnight Serenade", 
+    duration: "7:05", 
+    year: "2024", 
+    cover: "https://picsum.photos/seed/music2/400/400",
+    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+  },
+  { 
+    id: "3", 
+    title: "Velvet Skies", 
+    album: "Midnight Serenade", 
+    duration: "5:32", 
+    year: "2024", 
+    cover: "https://picsum.photos/seed/music3/400/400",
+    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+  },
+  { 
+    id: "4", 
+    title: "Neon Heartbeat", 
+    album: "Midnight Serenade", 
+    duration: "6:48", 
+    year: "2024", 
+    cover: "https://picsum.photos/seed/music4/400/400",
+    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+  },
+  { 
+    id: "5", 
+    title: "Shadow Waltz", 
+    album: "Midnight Serenade", 
+    duration: "5:15", 
+    year: "2024", 
+    cover: "https://picsum.photos/seed/music5/400/400",
+    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+  },
 ];
 
 interface SortableQueueItemProps {
@@ -85,9 +126,8 @@ function SortableQueueItem({ track, onRemove }: SortableQueueItemProps) {
 }
 
 export default function MusicList() {
-  const { playTrack, currentTrack, isPlaying } = useMusic();
+  const { playTrack, currentTrack, isPlaying, addToQueue, queue, removeFromQueue, clearQueue, setQueue } = useMusic();
   const [hoveredTrack, setHoveredTrack] = useState<string | null>(null);
-  const [queue, setQueue] = useState<Track[]>([]);
   const [isQueueOpen, setIsQueueOpen] = useState(false);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(true);
@@ -118,26 +158,13 @@ export default function MusicList() {
     })
   );
 
-  const addToQueue = (track: Track) => {
-    if (!queue.find(t => t.id === track.id)) {
-      setQueue([...queue, track]);
-      setIsQueueOpen(true);
-    }
-  };
-
-  const removeFromQueue = (id: string) => {
-    setQueue(queue.filter(t => t.id !== id));
-  };
-
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      setQueue((items) => {
-        const oldIndex = items.findIndex((t) => t.id === active.id);
-        const newIndex = items.findIndex((t) => t.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
+      const oldIndex = queue.findIndex((t) => t.id === active.id);
+      const newIndex = queue.findIndex((t) => t.id === over.id);
+      setQueue(arrayMove(queue, oldIndex, newIndex));
     }
   };
 
@@ -240,7 +267,10 @@ export default function MusicList() {
                   <div className="flex items-center gap-4 md:gap-8 justify-end">
                     <div className="hidden sm:flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
-                        onClick={() => addToQueue(track)}
+                        onClick={() => {
+                          addToQueue(track);
+                          setIsQueueOpen(true);
+                        }}
                         className="text-zinc-500 hover:text-gold-400 transition-colors"
                         title="Add to Queue"
                       >
@@ -314,7 +344,7 @@ export default function MusicList() {
                 {queue.length > 0 && (
                   <div className="p-6 border-t border-white/5">
                     <button 
-                      onClick={() => setQueue([])}
+                      onClick={clearQueue}
                       className="w-full py-3 text-xs font-mono uppercase tracking-widest text-zinc-500 hover:text-red-400 transition-colors"
                     >
                       Clear Queue

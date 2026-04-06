@@ -20,6 +20,14 @@ interface MusicContextType {
   seek: (time: number) => void;
   volume: number;
   setVolume: (volume: number) => void;
+  error: string | null;
+  queue: Track[];
+  addToQueue: (track: Track) => void;
+  removeFromQueue: (id: string) => void;
+  playNext: () => void;
+  playPrevious: () => void;
+  clearQueue: () => void;
+  setQueue: (tracks: Track[]) => void;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -30,6 +38,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.7);
+  const [error, setError] = useState<string | null>(null);
+  const [queue, setQueueState] = useState<Track[]>([]);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -42,18 +52,25 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
 
     const updateProgress = () => setProgress(audio.currentTime);
     const updateDuration = () => setDuration(audio.duration);
-    const onEnded = () => setIsPlaying(false);
+    const onEnded = () => playNext();
+    const onError = (e: any) => {
+      console.error("Audio error:", e);
+      setError("Failed to load audio source. Please check the URL.");
+      setIsPlaying(false);
+    };
 
     audio.addEventListener('timeupdate', updateProgress);
     audio.addEventListener('loadedmetadata', updateDuration);
     audio.addEventListener('ended', onEnded);
+    audio.addEventListener('error', onError);
 
     return () => {
       audio.removeEventListener('timeupdate', updateProgress);
       audio.removeEventListener('loadedmetadata', updateDuration);
       audio.removeEventListener('ended', onEnded);
+      audio.removeEventListener('error', onError);
     };
-  }, []);
+  }, [queue, currentTrack]); // Re-bind onEnded when queue/track changes
 
   useEffect(() => {
     if (audioRef.current) {
@@ -62,6 +79,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   }, [volume]);
 
   const playTrack = (track: Track) => {
+    setError(null);
     if (currentTrack?.id === track.id) {
       togglePlay();
       return;
@@ -70,23 +88,16 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     setCurrentTrack(track);
     if (audioRef.current && track.audioUrl) {
       audioRef.current.src = track.audioUrl;
-      audioRef.current.play().catch(err => console.error("Playback failed:", err));
+      audioRef.current.play().catch(err => {
+        console.error("Playback failed:", err);
+        setError("Playback failed. The audio source might be invalid or restricted.");
+        setIsPlaying(false);
+      });
       setIsPlaying(true);
     } else {
-      // Fallback for demo if no audioUrl
       console.warn("No audio URL for track:", track.title);
-      setIsPlaying(true);
-      // Simulate progress for demo
-      const interval = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 180) {
-            clearInterval(interval);
-            setIsPlaying(false);
-            return 0;
-          }
-          return prev + 1;
-        });
-      }, 1000);
+      setError("No audio URL provided for this track.");
+      setIsPlaying(false);
     }
   };
 
@@ -108,6 +119,33 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const addToQueue = (track: Track) => {
+    if (!queue.find(t => t.id === track.id)) {
+      setQueueState([...queue, track]);
+    }
+  };
+
+  const removeFromQueue = (id: string) => {
+    setQueueState(queue.filter(t => t.id !== id));
+  };
+
+  const playNext = () => {
+    if (queue.length === 0) return;
+    const currentIndex = queue.findIndex(t => t.id === currentTrack?.id);
+    const nextIndex = (currentIndex + 1) % queue.length;
+    playTrack(queue[nextIndex]);
+  };
+
+  const playPrevious = () => {
+    if (queue.length === 0) return;
+    const currentIndex = queue.findIndex(t => t.id === currentTrack?.id);
+    const prevIndex = (currentIndex - 1 + queue.length) % queue.length;
+    playTrack(queue[prevIndex]);
+  };
+
+  const clearQueue = () => setQueueState([]);
+  const setQueue = (tracks: Track[]) => setQueueState(tracks);
+
   return (
     <MusicContext.Provider value={{ 
       currentTrack, 
@@ -118,7 +156,15 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       duration, 
       seek,
       volume,
-      setVolume
+      setVolume,
+      error,
+      queue,
+      addToQueue,
+      removeFromQueue,
+      playNext,
+      playPrevious,
+      clearQueue,
+      setQueue
     }}>
       {children}
     </MusicContext.Provider>
