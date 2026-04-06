@@ -48,7 +48,7 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   // Form states
-  const [trackForm, setTrackForm] = useState({ title: '', album: '', duration: '', year: '', cover: '' });
+  const [trackForm, setTrackForm] = useState({ title: '', album: '', duration: '', year: '', cover: '', audioUrl: '' });
   const [videoForm, setVideoForm] = useState({ title: '', thumbnail: '', duration: '', views: '', category: '', description: '' });
   const [productForm, setProductForm] = useState({ name: '', price: 0, image: '', category: '', isNew: false });
 
@@ -122,7 +122,7 @@ export default function AdminDashboard() {
       const trackRef = doc(collection(db, 'tracks'));
       await setDoc(trackRef, newTrack);
       setTracks([{ id: trackRef.id, ...newTrack }, ...tracks]);
-      setTrackForm({ title: '', album: '', duration: '', year: '', cover: '' });
+      setTrackForm({ title: '', album: '', duration: '', year: '', cover: '', audioUrl: '' });
       setIsAdding(false);
     } catch (err) {
       handleFirestoreError(err, OperationType.CREATE, 'tracks');
@@ -333,6 +333,10 @@ export default function AdminDashboard() {
                       <div className="md:col-span-2 space-y-2">
                         <label className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Cover Image URL</label>
                         <input required value={trackForm.cover} onChange={e => setTrackForm({...trackForm, cover: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold-500/50 outline-none transition-all" placeholder="https://..." />
+                      </div>
+                      <div className="md:col-span-2 space-y-2">
+                        <label className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Audio File URL (Direct Link)</label>
+                        <input value={trackForm.audioUrl} onChange={e => setTrackForm({...trackForm, audioUrl: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold-500/50 outline-none transition-all" placeholder="https://.../song.mp3" />
                       </div>
                     </div>
                   )}

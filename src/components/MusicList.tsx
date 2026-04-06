@@ -1,7 +1,8 @@
 import { motion, AnimatePresence } from "motion/react";
-import { Play, Download, Share2, Heart, Clock, MoreHorizontal, ListMusic, X, GripVertical, Trash2, Music } from "lucide-react";
+import { Play, Pause, Download, Share2, Heart, Clock, MoreHorizontal, ListMusic, X, GripVertical, Trash2, Music } from "lucide-react";
 import { useState, useEffect } from "react";
 import { db, collection, getDocs, query, orderBy, onSnapshot, OperationType, handleFirestoreError } from "../lib/firebase";
+import { useMusic } from "../context/MusicContext";
 import {
   DndContext,
   closestCenter,
@@ -84,6 +85,7 @@ function SortableQueueItem({ track, onRemove }: SortableQueueItemProps) {
 }
 
 export default function MusicList() {
+  const { playTrack, currentTrack, isPlaying } = useMusic();
   const [hoveredTrack, setHoveredTrack] = useState<string | null>(null);
   const [queue, setQueue] = useState<Track[]>([]);
   const [isQueueOpen, setIsQueueOpen] = useState(false);
@@ -192,12 +194,21 @@ export default function MusicList() {
                 >
                   {/* ID / Play Icon */}
                   <div className="w-8 flex justify-center">
-                    {hoveredTrack === track.id ? (
-                      <button onClick={() => addToQueue(track)}>
-                        <Play className="w-4 h-4 text-gold-400 fill-current" />
+                    {hoveredTrack === track.id || (currentTrack?.id === track.id && isPlaying) ? (
+                      <button onClick={(e) => {
+                        e.stopPropagation();
+                        playTrack(track);
+                      }}>
+                        {currentTrack?.id === track.id && isPlaying ? (
+                          <Pause className="w-4 h-4 text-gold-400 fill-current" />
+                        ) : (
+                          <Play className="w-4 h-4 text-gold-400 fill-current" />
+                        )}
                       </button>
                     ) : (
-                      <span className="text-xs font-mono text-zinc-600">0{index + 1}</span>
+                      <span className={`text-xs font-mono ${currentTrack?.id === track.id ? 'text-gold-400' : 'text-zinc-600'}`}>
+                        0{index + 1}
+                      </span>
                     )}
                   </div>
 

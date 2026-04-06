@@ -9,23 +9,28 @@ import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import AdminPage from "./pages/AdminPage";
 import ScrollToTop from "./components/ScrollToTop";
+import { MusicProvider } from "./context/MusicContext";
+import AudioPlayer from "./components/AudioPlayer";
 
 export default function App() {
   return (
-    <Router>
-      <ScrollToTop />
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/music" element={<MusicPage />} />
-          <Route path="/videos" element={<VideosPage />} />
-          <Route path="/merch" element={<MerchPage />} />
-          <Route path="/gallery" element={<GalleryPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-        </Routes>
-      </Layout>
-    </Router>
+    <MusicProvider>
+      <Router>
+        <ScrollToTop />
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/music" element={<MusicPage />} />
+            <Route path="/videos" element={<VideosPage />} />
+            <Route path="/merch" element={<MerchPage />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+          </Routes>
+        </Layout>
+        <AudioPlayer />
+      </Router>
+    </MusicProvider>
   );
 }
