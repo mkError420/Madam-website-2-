@@ -2,6 +2,7 @@ import { motion } from "motion/react";
 import { Play, Pause, SkipBack, SkipForward, Volume2, ListMusic } from "lucide-react";
 import { useState } from "react";
 import { Track } from "../types";
+import { Link } from "react-router-dom";
 
 const tracks: Track[] = [
   { id: "1", title: "Echoes in the Dark", duration: "3:45", url: "#", cover: "https://picsum.photos/seed/music1/400/400" },
@@ -106,9 +107,9 @@ export default function MusicSection() {
               ))}
             </div>
 
-            <button className="mt-12 w-full py-4 border border-gold-500/30 text-gold-400 rounded-xl hover:bg-gold-500 hover:text-gold-950 transition-all font-bold">
-              Listen on Spotify
-            </button>
+            <Link to="/music" className="mt-12 w-full py-4 border border-gold-500/30 text-gold-400 rounded-xl hover:bg-gold-500 hover:text-gold-950 transition-all font-bold flex items-center justify-center">
+              View more
+            </Link>
           </div>
 
         </div>

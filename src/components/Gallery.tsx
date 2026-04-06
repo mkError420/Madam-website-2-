@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import { Link } from "react-router-dom";
 
 const images = [
   "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=2070&auto=format&fit=crop",
@@ -18,9 +19,9 @@ export default function Gallery() {
             <h2 className="text-5xl font-serif mb-4">Visuals</h2>
             <p className="text-zinc-500 font-mono text-sm tracking-widest uppercase">Moments from the stage</p>
           </div>
-          <button className="text-gold-400 hover:text-gold-200 font-mono text-sm uppercase tracking-widest border-b border-gold-500/30 pb-1 transition-all">
+          <Link to="/gallery" className="text-gold-400 hover:text-gold-200 font-mono text-sm uppercase tracking-widest border-b border-gold-500/30 pb-1 transition-all">
             View All Photos
-          </button>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

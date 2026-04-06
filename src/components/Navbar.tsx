@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "motion/react";
-import { Music, Calendar, Image as ImageIcon, User, Mail, Play, Menu, X } from "lucide-react";
+import { Music, ShoppingBag, Image as ImageIcon, User, Mail, Play, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 
@@ -10,7 +10,7 @@ export default function Navbar() {
   const navItems = [
     { name: "Music", icon: <Music className="w-4 h-4" />, href: "/music" },
     { name: "Videos", icon: <Play className="w-4 h-4" />, href: "/videos" },
-    { name: "Tour", icon: <Calendar className="w-4 h-4" />, href: "/tour" },
+    { name: "Merch", icon: <ShoppingBag className="w-4 h-4" />, href: "/merch" },
     { name: "Gallery", icon: <ImageIcon className="w-4 h-4" />, href: "/gallery" },
     { name: "About", icon: <User className="w-4 h-4" />, href: "/about" },
     { name: "Contact", icon: <Mail className="w-4 h-4" />, href: "/contact" },

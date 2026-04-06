@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import { Play, ShoppingBag, Music2 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function LatestRelease() {
   return (
@@ -55,10 +56,10 @@ export default function LatestRelease() {
               </div>
 
               <div className="flex flex-wrap gap-4">
-                <button className="px-8 py-4 bg-gold-500 text-gold-950 font-bold rounded-full flex items-center gap-2 hover:bg-gold-400 transition-all">
-                  <ShoppingBag className="w-4 h-4" />
-                  Buy Vinyl
-                </button>
+                <Link to="/music" className="px-8 py-4 bg-gold-500 text-gold-950 font-bold rounded-full flex items-center gap-2 hover:bg-gold-400 transition-all">
+                  <Play className="w-4 h-4 fill-current" />
+                  Listen more
+                </Link>
                 <button className="px-8 py-4 border border-white/10 hover:bg-white/5 rounded-full font-bold flex items-center gap-2 transition-all">
                   <Music2 className="w-4 h-4" />
                   Stream Now

@@ -1,7 +1,7 @@
 import Hero from "../components/Hero";
 import MusicSection from "../components/MusicSection";
 import VideosSection from "../components/VideosSection";
-import TourDates from "../components/TourDates";
+import MerchSection from "../components/MerchSection";
 import Gallery from "../components/Gallery";
 import About from "../components/About";
 import LatestRelease from "../components/LatestRelease";
@@ -14,7 +14,7 @@ export default function Home() {
       <Hero />
       <div className="space-y-0">
         <LatestRelease />
-        <TourDates />
+        <MerchSection />
         <MusicSection />
         <VideosSection />
         <PressQuotes />

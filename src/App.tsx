@@ -3,7 +3,7 @@ import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import MusicPage from "./pages/MusicPage";
 import VideosPage from "./pages/VideosPage";
-import TourPage from "./pages/TourPage";
+import MerchPage from "./pages/MerchPage";
 import GalleryPage from "./pages/GalleryPage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
@@ -18,7 +18,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/music" element={<MusicPage />} />
           <Route path="/videos" element={<VideosPage />} />
-          <Route path="/tour" element={<TourPage />} />
+          <Route path="/merch" element={<MerchPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
