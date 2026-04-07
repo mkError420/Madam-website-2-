@@ -96,12 +96,13 @@ service cloud.firestore {
     // ===============================================================
 
     function isValidTrack(data) {
-      return hasRequiredFields(['title', 'album', 'duration', 'year', 'cover', 'createdAt']) &&
+      return hasRequiredFields(['title', 'album', 'duration', 'year', 'cover', 'audioUrl', 'createdAt']) &&
              data.title is string && data.title.size() > 0 &&
              data.album is string && data.album.size() > 0 &&
              data.duration is string &&
              data.year is string &&
              isValidUrl(data.cover) &&
+             isValidUrl(data.audioUrl) &&
              data.createdAt is timestamp;
     }
 

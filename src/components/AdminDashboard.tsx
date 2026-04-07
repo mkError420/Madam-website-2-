@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Plus, Trash2, Edit2, Save, X, Music, Video as VideoIcon, ShoppingBag, LogIn, LogOut, ShieldCheck, AlertCircle, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
 import { auth, db, storage, googleProvider, signInWithPopup, signOut, onAuthStateChanged, collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, orderBy, Timestamp, OperationType, handleFirestoreError, FirebaseUser } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import firebaseConfig from '../../firebase-applet-config.json';
 import { Track, Video, Product, GalleryImage } from '../types';
 
 export default function AdminDashboard() {
@@ -96,6 +97,10 @@ export default function AdminDashboard() {
   const handleAddTrack = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (!trackForm.audioUrl) {
+      setError("Please upload an audio file or provide a YouTube link.");
+      return;
+    }
     try {
       const newTrack = { ...trackForm, createdAt: Timestamp.now() };
       const trackRef = doc(collection(db, 'tracks'));
@@ -187,9 +192,19 @@ export default function AdminDashboard() {
         const snapshot = await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
         setTrackForm({ ...trackForm, audioUrl: downloadURL });
-      } catch (err) {
+      } catch (err: any) {
         console.error("Upload error:", err);
-        setError("Failed to upload audio file. Please try again.");
+        if (err.code === 'storage/unauthorized') {
+          setError("Upload failed: Unauthorized. Please ensure your Firebase Storage rules allow uploads for authenticated users.");
+        } else if (err.message?.includes('CORS') || err.code === 'storage/retry-limit-exceeded') {
+          setError(`Upload failed: CORS policy block. 
+            To fix this, you must configure CORS in your Firebase project:
+            1. Open Google Cloud Shell for your project.
+            2. Create a 'cors.json' file with: [{"origin": ["*"], "method": ["GET", "POST", "PUT", "DELETE", "HEAD"], "maxAgeSeconds": 3600}]
+            3. Run: gsutil cors set cors.json gs://${firebaseConfig.storageBucket}`);
+        } else {
+          setError(`Upload failed: ${err.message || "Unknown error"}. Please try again.`);
+        }
       } finally {
         setIsUploading(false);
       }
@@ -404,6 +419,7 @@ export default function AdminDashboard() {
                         <label className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Audio Source (Direct URL or YouTube Link)</label>
                         <div className="flex gap-4">
                           <input 
+                            required
                             value={trackForm.audioUrl} 
                             onChange={e => setTrackForm({...trackForm, audioUrl: e.target.value})} 
                             className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold-500/50 outline-none transition-all" 
@@ -540,9 +556,13 @@ export default function AdminDashboard() {
                     </div>
                   )}
 
-                  <button type="submit" className="w-full py-4 bg-gold-500 text-gold-950 font-bold rounded-2xl flex items-center justify-center gap-3 hover:bg-gold-400 transition-all">
-                    <Save className="w-5 h-5" />
-                    Save {activeTab.slice(0, -1)}
+                  <button 
+                    type="submit" 
+                    disabled={isUploading}
+                    className="w-full py-4 bg-gold-500 text-gold-950 font-bold rounded-2xl flex items-center justify-center gap-3 hover:bg-gold-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                    {isUploading ? 'Uploading Audio...' : `Save ${activeTab.slice(0, -1)}`}
                   </button>
                 </form>
               </motion.div>

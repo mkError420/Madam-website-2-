@@ -7,7 +7,7 @@ import { db, collection, query, orderBy, onSnapshot, OperationType, handleFirest
 import { useMusic } from "../context/MusicContext";
 
 export default function MusicSection({ showViewMore = false }: { showViewMore?: boolean }) {
-  const { playTrack, currentTrack, isPlaying, togglePlay, playNext, playPrevious, progress, duration, seek } = useMusic();
+  const { playTrack, currentTrack, isPlaying, togglePlay, playNext, playPrevious, progress, duration, seek, setQueue } = useMusic();
   const [tracks, setTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -67,7 +67,12 @@ export default function MusicSection({ showViewMore = false }: { showViewMore?: 
               />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <button 
-                  onClick={() => activeTrack && playTrack(activeTrack)}
+                  onClick={() => {
+                    if (activeTrack) {
+                      setQueue(tracks);
+                      playTrack(activeTrack);
+                    }
+                  }}
                   className="w-20 h-20 bg-gold-500 rounded-full flex items-center justify-center text-gold-950 scale-90 group-hover:scale-100 transition-transform"
                 >
                   {isPlaying && currentTrack?.id === activeTrack?.id ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current ml-1" />}
@@ -127,7 +132,10 @@ export default function MusicSection({ showViewMore = false }: { showViewMore?: 
               {tracks.map((track, index) => (
                 <button
                   key={track.id}
-                  onClick={() => playTrack(track)}
+                  onClick={() => {
+                    setQueue(tracks);
+                    playTrack(track);
+                  }}
                   className={`w-full flex items-center justify-between p-4 rounded-xl transition-all group ${
                     currentTrack?.id === track.id ? 'bg-gold-500/10 border border-gold-500/20' : 'hover:bg-white/5 border border-transparent'
                   }`}
